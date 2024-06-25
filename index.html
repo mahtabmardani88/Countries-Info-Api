@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Country Info</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+</head>
+<body>
+    <div class="container">
+        <h1>Country Info</h1>
+        <form id="searchForm" class="search-form">
+            <div class="input-container">
+                <span class="flag-icon">🌍</span>
+                <input type="text" id="countryInput" placeholder="Enter country name" required>
+            </div>
+            <button type="submit">Search</button>
+        </form>
+        <div id="loadingMessage" class="message"></div>
+        <div id="errorMessage" class="message error"></div>
+        <div id="countryData" class="country-data"></div>
+        <div id="map" class="map-container"></div>
+    </div>
+
+
+<!-- show the map (The script link is used to include the Leaflet.js library for creating interactive maps.) -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
+
+
+<!--get the emoji in this website =>  https://emojipedia.org/ -->
+<!-- library show the map => https://unpkg.com/leaflet@1.7.1/dist/leaflet.css -->
