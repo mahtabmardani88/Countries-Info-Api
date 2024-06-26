@@ -10,8 +10,8 @@ const ID_LOADING_MESSAGE = 'loadingMessage';
 const ID_ERROR_MESSAGE = 'errorMessage';
 const ID_COUNTRY_DATA = 'countryData';
 const ID_MAP = 'map';
-const CLASS_AUTOCOMPLETE_ITEMS = 'autocomplete-items';
-const CLASS_AUTOCOMPLETE_ACTIVE = 'autocomplete-active';
+const CLASS_SEARCH_AUTOCOMPLETE_ITEMS = 'autocomplete-items';
+const CLASS_SEARCH_AUTOCOMPLETE_ACTIVE = 'autocomplete-active';
 
 
 let countryList = [];
@@ -37,7 +37,7 @@ async function getCountryData(countryName) {
             showCountryOnMap(data[0].latlng);
         }
     } catch (error) {
-        showError(error);
+        showErrorAndLoading(error);
     }
 }
 
@@ -58,7 +58,7 @@ function displayCountryInfo(data) {
     `;
 }
 
-function showError(error) {
+function showErrorAndLoading(error) {
     document.getElementById(ID_LOADING_MESSAGE).textContent = '';
     document.getElementById(ID_ERROR_MESSAGE).textContent = `Error: ${error.message}`;
 }
@@ -74,10 +74,10 @@ searchForm.addEventListener('submit', (event) => {
                 getCountryData(countryName);
             }, 2000);
         } else {
-            showError(new Error('Country not found'));
+            showErrorAndLoading(new Error('Country not found'));
         }
     } else {
-        showError(new Error('Please enter a country name'));
+        showErrorAndLoading(new Error('Please enter a country name'));
     }
 });
 
@@ -92,51 +92,51 @@ async function fetchCountryList() {
         const data = await response.json();
         countryList = data.map(country => country.name.common.toLowerCase());
         const countryNames = data.map(country => country.name.common);
-        autocomplete(document.getElementById(ID_COUNTRY_INPUT), countryNames);
+        searchAutocomplete(document.getElementById(ID_COUNTRY_INPUT), countryNames);
     } catch (error) {
         console.error('Error fetching countries:', error);
     }
 }
 
-function autocomplete(input, array) {
-    let currentFocus;
+function searchAutocomplete(input, array) {
+    let currentCountryFocus;
     input.addEventListener('input', function() {
-        let a, b, i, val = this.value;
+        let a, offerCountryList, i, val = this.value;
         closeAllLists();
         if (!val) { return false;}
-        currentFocus = -1;
+        currentCountryFocus = -1;
         a = document.createElement('DIV');
-        a.setAttribute('id', this.id + 'autocomplete-list');
-        a.setAttribute('class', CLASS_AUTOCOMPLETE_ITEMS);
+        a.setAttribute('id', this.id + 'SearchAutocomplete-list');
+        a.setAttribute('class', CLASS_SEARCH_AUTOCOMPLETE_ITEMS);
         this.parentNode.appendChild(a);
         for (i = 0; i < array.length; i++) {
             if (array[i].substr(0, val.length).toUpperCase() === val.toUpperCase()) {
-                b = document.createElement('DIV');
-                b.innerHTML = '<strong>' + array[i].substr(0, val.length) + '</strong>';
-                b.innerHTML += array[i].substr(val.length);
-                b.innerHTML += "<input type='hidden' value='" + array[i] + "'>";
-                b.addEventListener('click', function(e) {
+                offerCountryList = document.createElement('DIV');
+                offerCountryList.innerHTML = '<strong>' + array[i].substr(0, val.length) + '</strong>';
+                offerCountryList.innerHTML += array[i].substr(val.length);
+                offerCountryList.innerHTML += "<input type='hidden' value='" + array[i] + "'>";
+                offerCountryList.addEventListener('click', function(e) {
                     input.value = this.getElementsByTagName('input')[0].value;
                     closeAllLists();
                 });
-                a.appendChild(b);
+                a.appendChild(offerCountryList);
             }
         }
     });
 
     input.addEventListener('keydown', function(e) {
-        let x = document.getElementById(this.id + 'autocomplete-list');
+        let x = document.getElementById(this.id + 'SearchAutocomplete-list');
         if (x) x = x.getElementsByTagName('div');
         if (e.keyCode === 40) {
-            currentFocus++;
+            currentCountryFocus++;
             addActive(x);
         } else if (e.keyCode === 38) {
-            currentFocus--;
+            currentCountryFocus--;
             addActive(x);
         } else if (e.keyCode === 13) {
             e.preventDefault();
-            if (currentFocus > -1) {
-                if (x) x[currentFocus].click();
+            if (currentCountryFocus > -1) {
+                if (x) x[currentCountryFocus].click();
             }
         }
     });
@@ -144,9 +144,9 @@ function autocomplete(input, array) {
     function addActive(x) {
         if (!x) return false;
         removeActive(x);
-        if (currentFocus >= x.length) currentFocus = 0;
-        if (currentFocus < 0) currentFocus = (x.length - 1);
-        x[currentFocus].classList.add(CLASS_AUTOCOMPLETE_ACTIVE);
+        if (currentCountryFocus >= x.length) currentCountryFocus = 0;
+        if (currentCountryFocus < 0) currentCountryFocus = (x.length - 1);
+        x[currentCountryFocus].classList.add(CLASS_SEARCH_AUTOCOMPLETE_ACTIVE);
     }
 
     function removeActive(x) {
@@ -156,7 +156,7 @@ function autocomplete(input, array) {
     }
 
     function closeAllLists(elmnt) {
-        const x = document.getElementsByClassName(CLASS_AUTOCOMPLETE_ITEMS);
+        const x = document.getElementsByClassName(CLASS_SEARCH_AUTOCOMPLETE_ITEMS);
         for (let i = 0; i < x.length; i++) {
             if (elmnt !== x[i] && elmnt !== input) {
                 x[i].parentNode.removeChild(x[i]);
@@ -169,7 +169,7 @@ function autocomplete(input, array) {
     });
 }
 
-function showCountryOnMap(latlng) {
+function showCountryOnMap(longitude) {
     if (mapInstance !== null) {
         mapInstance.remove();
     }
@@ -177,15 +177,15 @@ function showCountryOnMap(latlng) {
     if (mapElement) {
         mapElement.style.height = '400px';
         mapElement.style.width = '100%';
-
-        mapInstance = L.map(ID_MAP).setView(latlng, 5);
+// 5 is zoom in the map 
+        mapInstance = L.map(ID_MAP).setView(longitude, 5);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '© OpenStreetMap'
         }).addTo(mapInstance);
 
-        L.marker(latlng).addTo(mapInstance);
+        L.marker(longitude).addTo(mapInstance);
     }
 }
 
